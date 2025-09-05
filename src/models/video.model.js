@@ -1,31 +1,33 @@
 import mongoose, { Schema } from "mongoose";
 
-const videoSchema = new mongoose.Schema({
+const videoSchema = new mongoose.Schema(
+  {
     title: {
-        type: String,
-        required: true,
+      type: String,
+      required: true,
     },
     description: {
-        type: String,
-        default: "No description"
+      type: String,
+      default: "No description",
     },
-    publishedPublicly:{
-        type: Boolean,
-        default: true
+    publishedPublicly: {
+      type: Boolean,
+      default: true,
     },
-    duration:{
-        type: String
+    duration: {
+      type: String,
     },
     userID: {
-        type: Schema.Types.ObjectId,
-        ref: "User",
-        index: true
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      index: true,
     },
     thumbnail: {
-        type: String,
-        required: true
-    }
-},
-{timestamps: true})
+      type: String,
+      required: true,
+    },
+  },
+  { timestamps: true }
+);
 
 const Video = mongoose.model("Video", videoSchema);
