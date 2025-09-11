@@ -23,7 +23,6 @@ const registerUser = asyncHandler( async (req, res, next) => {
     if(userExistance){
         throw new ApiError(409, "UserName or Email already exists")
     }
-
     // Uploading the avatar to localPath
     const avatarLocalPath = req.file?.path;
     // Checking if localFilePath exists

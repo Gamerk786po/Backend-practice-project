@@ -5,10 +5,10 @@ import mongoose from "mongoose";
 const dbConnect = async () => {
   try {
     const connectionInstance = await mongoose.connect(
-      `${process.env.MONGO_URL}/${DB_Name}`
+      `${process.env.MONGO_URL}${DB_Name}`
     );
     console.log(
-      `\n MongoDB connected !! DB HOST: ${connectionInstance.connection.host}`
+      `\n ✅ MongoDB connected !! DB HOST: ${connectionInstance.connection.host}`
     );
   } catch (error) {
     console.error("Error occured", error);

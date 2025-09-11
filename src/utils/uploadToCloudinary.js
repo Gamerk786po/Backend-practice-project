@@ -1,11 +1,5 @@
 import { v2 as cloudinary } from "cloudinary";
-import fs from "fs";
-// Configuration
-cloudinary.config({
-  cloud_name: process.env.CLOUD_NAME,
-  api_key: process.env.API_KEY,
-  api_secret: process.env.API_SECRET,
-});
+import fs from "fs"
 
 // Function for Uploading files to Cloudinary
 const uploadToCloudinary = async (localPath) => {
