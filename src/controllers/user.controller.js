@@ -96,7 +96,7 @@ const loginUser = asyncHandler(async (req, res) => {
     throw new ApiError(401, "Password is incorrect");
   }
 
-  const { accessToken, refreshToken } = generateRefreshAndAccessTokens(
+  const { accessToken, refreshToken } = await generateRefreshAndAccessTokens(
     user._id
   );
 
@@ -113,17 +113,30 @@ const loginUser = asyncHandler(async (req, res) => {
     .status(200)
     .cookie("accessToken", accessToken, options)
     .cookie("refreshToken", refreshToken, options)
-    .json({
-      loggedInUser,
-      accessToken,
-      refreshToken,
-    });
+    .json(
+      new ApiResponse(
+        {
+          user: loggedInUser,
+          accessToken,
+          refreshToken,
+        },
+        "User logged In Successfully"
+      )
+    );
 });
 
 const logoutUser = asyncHandler(async (req, res) => {
-  await User.findByIdAndUpdate(req.user._id, {
-    new: true
-  });
+  await User.findByIdAndUpdate(
+    req.user._id,
+    {
+      $unset: {
+        refreshToken: 1, // this removes the field from document
+      },
+    },
+    {
+      new: true,
+    }
+  );
   const options = {
     httpOnly: true,
     secure: true,
