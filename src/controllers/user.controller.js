@@ -20,7 +20,7 @@ const generateRefreshAndAccessTokens = async (_id) => {
   }
 };
 
-const registerUser = asyncHandler(async (req, res, next) => {
+const registerUser = asyncHandler(async (req, res) => {
   // Getting data from request
   const { userName, email, password } = req.body;
 
@@ -72,7 +72,7 @@ const registerUser = asyncHandler(async (req, res, next) => {
     .json(new ApiResponse(200, createdUser, "Successfully registered user"));
 });
 
-const loginUser = asyncHandler(async (req, res, next) => {
+const loginUser = asyncHandler(async (req, res) => {
   // Getting data from request
   const { userName, email, password } = req.body;
 
@@ -120,4 +120,18 @@ const loginUser = asyncHandler(async (req, res, next) => {
     });
 });
 
-export { registerUser, loginUser };
+const logoutUser = asyncHandler(async (req, res) => {
+  await User.findByIdAndUpdate(req.user._id, {
+    new: true
+  });
+  const options = {
+    httpOnly: true,
+    secure: true,
+  };
+  res
+    .status(200)
+    .clearCookie("accessToken", options)
+    .clearCookie("refreshToken", options)
+    .json(new ApiResponse(200, {}, "Succesfully logged out."));
+});
+export { registerUser, loginUser, logoutUser };
