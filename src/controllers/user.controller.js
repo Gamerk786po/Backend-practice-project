@@ -3,6 +3,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import User from "../models/user.model.js";
 import { uploadToCloudinary } from "../utils/uploadToCloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
+import jwt from "jsonwebtoken";
 
 // Method for generating Refresh and Access Tokens
 const generateRefreshAndAccessTokens = async (_id) => {
@@ -101,7 +102,7 @@ const loginUser = asyncHandler(async (req, res) => {
   );
 
   const loggedInUser = await User.findById(user._id).select(
-    "-pasword -refreshToken"
+    "-password -refreshToken"
   );
 
   const options = {
@@ -115,6 +116,7 @@ const loginUser = asyncHandler(async (req, res) => {
     .cookie("refreshToken", refreshToken, options)
     .json(
       new ApiResponse(
+        200,
         {
           user: loggedInUser,
           accessToken,
@@ -147,4 +149,62 @@ const logoutUser = asyncHandler(async (req, res) => {
     .clearCookie("refreshToken", options)
     .json(new ApiResponse(200, {}, "Succesfully logged out."));
 });
-export { registerUser, loginUser, logoutUser };
+
+const regenerateRefreshAndAccessTokens = asyncHandler(async (req, res) => {
+  // Geting oldRefreshToken from cookies
+  const oldRefreshToken = req.cookies?.refreshToken || req.body?.refreshToken;
+
+  if (!oldRefreshToken) {
+   throw new ApiError(401, "Unauthorized Token");
+  }
+
+  // Decoding the oldRefreshToken
+  const decodedOldToken = jwt.verify(
+    oldRefreshToken,
+    process.env.REFRESH_TOKEN_SECRET
+  );
+
+  if (!decodedOldToken) {
+  throw new ApiError(401, "Invalid Token");
+  }
+
+  // Getting user by id
+  const user = await User.findById(decodedOldToken?._id);
+
+  if(!user){
+    throw new ApiError(401, "Invalid Refresh Token");
+  }
+  if(user.refreshToken !== oldRefreshToken){
+    throw new ApiError(401, "The Refresh Token is used or expiried");
+  }
+
+  // Regenerating newAccessToken and newRefreshToken
+  const { accessToken, refreshToken } =
+    await generateRefreshAndAccessTokens(user._id);
+
+  // Cookie options
+  const options = {
+    httpOnly: true,
+    secure: true,
+  };
+
+  // Generating a response
+  res
+    .status(200)
+    .cookie("accessToken", accessToken, options)
+    .cookie("refreshToken", refreshToken, options)
+    .json(
+      new ApiResponse(
+        200,
+        { refreshToken, accessToken },
+        "New refresh and Access Tokens created successfully"
+      )
+    );
+});
+
+export {
+  registerUser,
+  loginUser,
+  logoutUser,
+  regenerateRefreshAndAccessTokens,
+};

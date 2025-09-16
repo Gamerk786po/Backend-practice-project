@@ -10,7 +10,7 @@ export const jwtVerify = async (req, res, next) => {
       req.header("authorization")?.replace("Bearer-", "");
 
     if (!token) {
-      throw new ApiError(401, "unautherized token");
+      throw new ApiError(401, "unauthorized token");
     }
     // decoding the token
     const decodedToken = jwt.verify(
