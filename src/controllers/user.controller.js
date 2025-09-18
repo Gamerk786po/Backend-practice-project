@@ -234,10 +234,36 @@ const updateUserName = asyncHandler(async (req, res) => {
   }
 });
 
+const updatePassword = asyncHandler(async (req, res) => {
+  const { oldPassword, newPassword } = req.body;
+
+  if (!newPassword || !oldPassword) {
+    throw new ApiError(400, "Both newPassword and oldPassword are required");
+  }
+
+  // Getting user by id
+  const user = await User.findById(req.user._id);
+
+  // oldPassword Check
+  const isOldPasswordCorrect = await user.isPasswordCorrect(oldPassword);
+
+  if (!isOldPasswordCorrect) {
+    throw new ApiError(401, "Wrong Old Password");
+  }
+
+  user.password = newPassword;
+  await user.save({ validateBeforeSave: false });
+
+  res
+    .status(200)
+    .json(new ApiResponse(200, {}, "Password succesfully updated"));
+});
+
 export {
   registerUser,
   loginUser,
   logoutUser,
   regenerateRefreshAndAccessTokens,
   updateUserName,
+  updatePassword
 };
