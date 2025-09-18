@@ -155,7 +155,7 @@ const regenerateRefreshAndAccessTokens = asyncHandler(async (req, res) => {
   const oldRefreshToken = req.cookies?.refreshToken || req.body?.refreshToken;
 
   if (!oldRefreshToken) {
-   throw new ApiError(401, "Unauthorized Token");
+    throw new ApiError(401, "Unauthorized Token");
   }
 
   // Decoding the oldRefreshToken
@@ -165,22 +165,23 @@ const regenerateRefreshAndAccessTokens = asyncHandler(async (req, res) => {
   );
 
   if (!decodedOldToken) {
-  throw new ApiError(401, "Invalid Token");
+    throw new ApiError(401, "Invalid Token");
   }
 
   // Getting user by id
   const user = await User.findById(decodedOldToken?._id);
 
-  if(!user){
+  if (!user) {
     throw new ApiError(401, "Invalid Refresh Token");
   }
-  if(user.refreshToken !== oldRefreshToken){
+  if (user.refreshToken !== oldRefreshToken) {
     throw new ApiError(401, "The Refresh Token is used or expiried");
   }
 
   // Regenerating newAccessToken and newRefreshToken
-  const { accessToken, refreshToken } =
-    await generateRefreshAndAccessTokens(user._id);
+  const { accessToken, refreshToken } = await generateRefreshAndAccessTokens(
+    user._id
+  );
 
   // Cookie options
   const options = {
@@ -202,9 +203,41 @@ const regenerateRefreshAndAccessTokens = asyncHandler(async (req, res) => {
     );
 });
 
+const updateUserName = asyncHandler(async (req, res) => {
+  const { newUserName } = req.body;
+
+  if (!newUserName) {
+    throw new ApiError(400, "userName is required");
+  }
+
+  try {
+    // Finding and updating
+    const user = await User.findByIdAndUpdate(
+      req.user._id,
+      {
+        $set: {
+          userName: newUserName,
+        },
+      },
+      { new: true }
+    ).select("-password -refreshToken");
+
+    res
+      .status(200)
+      .json(new ApiResponse(200, user, "userName successfully updated"));
+  } catch (error) {
+    if (error.code === 11000) {
+      // Error if duplicate username
+      throw new ApiError(409, "userName already exists");
+    }
+    throw new ApiError(500, "Error while updating userName in DB");
+  }
+});
+
 export {
   registerUser,
   loginUser,
   logoutUser,
   regenerateRefreshAndAccessTokens,
+  updateUserName,
 };
