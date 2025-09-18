@@ -110,7 +110,7 @@ const loginUser = asyncHandler(async (req, res) => {
     secure: true,
   };
 
-  res
+  return res
     .status(200)
     .cookie("accessToken", accessToken, options)
     .cookie("refreshToken", refreshToken, options)
@@ -143,7 +143,7 @@ const logoutUser = asyncHandler(async (req, res) => {
     httpOnly: true,
     secure: true,
   };
-  res
+  return res
     .status(200)
     .clearCookie("accessToken", options)
     .clearCookie("refreshToken", options)
@@ -190,7 +190,7 @@ const regenerateRefreshAndAccessTokens = asyncHandler(async (req, res) => {
   };
 
   // Generating a response
-  res
+  return res
     .status(200)
     .cookie("accessToken", accessToken, options)
     .cookie("refreshToken", refreshToken, options)
@@ -222,7 +222,7 @@ const updateUserName = asyncHandler(async (req, res) => {
       { new: true }
     ).select("-password -refreshToken");
 
-    res
+    return res
       .status(200)
       .json(new ApiResponse(200, user, "userName successfully updated"));
   } catch (error) {
@@ -254,16 +254,28 @@ const updatePassword = asyncHandler(async (req, res) => {
   user.password = newPassword;
   await user.save({ validateBeforeSave: false });
 
-  res
+  return res
     .status(200)
     .json(new ApiResponse(200, {}, "Password succesfully updated"));
 });
 
+const getUser = asyncHandler(async (req, res) => {
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        req.user,
+        "Current loggedin User successfully fetched"
+      )
+    );
+});
 export {
   registerUser,
   loginUser,
   logoutUser,
   regenerateRefreshAndAccessTokens,
   updateUserName,
-  updatePassword
+  updatePassword,
+  getUser,
 };
