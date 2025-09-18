@@ -260,16 +260,18 @@ const updatePassword = asyncHandler(async (req, res) => {
 });
 
 const getUser = asyncHandler(async (req, res) => {
+  const { password, refreshToken, ...user } = req.user.toObject();
   return res
     .status(200)
     .json(
       new ApiResponse(
         200,
-        req.user,
+        user,
         "Current loggedin User successfully fetched"
       )
     );
 });
+
 export {
   registerUser,
   loginUser,
