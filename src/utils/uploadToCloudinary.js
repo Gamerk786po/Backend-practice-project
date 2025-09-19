@@ -1,7 +1,7 @@
-import { v2 as cloudinary } from "cloudinary";
-import fs from "fs";
 import dotenv from "dotenv";
 dotenv.config();
+import { v2 as cloudinary } from "cloudinary";
+import fs from "fs";
 
 // Cloudinary config
 cloudinary.config({
@@ -9,7 +9,10 @@ cloudinary.config({
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
-console.log("✅ Cloudinary configured with:", process.env.CLOUDINARY_CLOUD_NAME);
+console.log(
+  "✅ Cloudinary configured with:",
+  process.env.CLOUDINARY_CLOUD_NAME
+);
 
 // Function for Uploading files to Cloudinary
 const uploadToCloudinary = async (localPath) => {
@@ -33,4 +36,22 @@ const uploadToCloudinary = async (localPath) => {
   }
 };
 
-export { uploadToCloudinary };
+// Function for deleting files from cloudinary
+const deleteFromCloudinary = async (public_id) => {
+  try {
+    if (!public_id) {
+      return null;
+    }
+
+    // Deleting old avatar using public_id
+    const response = await cloudinary.uploader.destroy(public_id, {
+      resource_type: "auto",
+    });
+    return response;
+  } catch (error) {
+    console.log(`Unable to delete file from cloudinary err: ${error}`);
+    return null;
+  }
+};
+
+export { uploadToCloudinary, deleteFromCloudinary };

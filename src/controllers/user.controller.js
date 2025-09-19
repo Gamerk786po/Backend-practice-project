@@ -1,7 +1,7 @@
 import { ApiError } from "../utils/ApiError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import User from "../models/user.model.js";
-import { uploadToCloudinary } from "../utils/uploadToCloudinary.js";
+import { uploadToCloudinary, deleteFromCloudinary } from "../utils/uploadToCloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken";
 
@@ -58,7 +58,9 @@ const registerUser = asyncHandler(async (req, res) => {
     email: email,
     password: password,
     avatar: avatar.url,
+    avatarId: avatar.public_id,
   });
+
   // Geting user from db using id
   const createdUser = await User.findById(user._id).select(
     "-password -refreshToken"
@@ -259,6 +261,10 @@ const updatePassword = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, {}, "Password succesfully updated"));
 });
 
+const updateAvatar = asyncHandler(async(req, res) => {
+
+})
+
 const getUser = asyncHandler(async (req, res) => {
   const { password, refreshToken, ...user } = req.user.toObject();
   return res
@@ -279,5 +285,6 @@ export {
   regenerateRefreshAndAccessTokens,
   updateUserName,
   updatePassword,
+  updateAvatar,
   getUser,
 };
