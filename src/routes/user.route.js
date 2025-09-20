@@ -5,11 +5,13 @@ import {
   logoutUser,
   regenerateRefreshAndAccessTokens,
   registerUser,
+  updateAvatar,
   updatePassword,
   updateUserName,
 } from "../controllers/user.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import { jwtVerify } from "../middlewares/auth.middleware.js";
+import multer from "multer";
 
 const router = Router();
 
@@ -26,5 +28,7 @@ router.route("/userName").patch(jwtVerify, updateUserName);
 router.route("/password").patch(jwtVerify, updatePassword);
 
 router.route("/getUser").get(jwtVerify, getUser);
+
+router.route("/avatar").patch(jwtVerify, upload.single("avatar"), updateAvatar);
 
 export default router;

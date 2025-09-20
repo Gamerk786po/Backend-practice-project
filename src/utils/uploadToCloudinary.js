@@ -20,7 +20,7 @@ const uploadToCloudinary = async (localPath) => {
     if (!localPath) return null;
 
     const response = await cloudinary.uploader.upload(localPath, {
-      resource_type: "auto",
+      resource_type: "image",
     });
 
     fs.unlinkSync(localPath);
@@ -35,7 +35,6 @@ const uploadToCloudinary = async (localPath) => {
     return null;
   }
 };
-
 // Function for deleting files from cloudinary
 const deleteFromCloudinary = async (public_id) => {
   try {
@@ -45,13 +44,14 @@ const deleteFromCloudinary = async (public_id) => {
 
     // Deleting old avatar using public_id
     const response = await cloudinary.uploader.destroy(public_id, {
-      resource_type: "auto",
+      resource_type: "image",
     });
+
     return response;
   } catch (error) {
     console.log(`Unable to delete file from cloudinary err: ${error}`);
-    return null;
+    return { success: false, error: error.message };
   }
 };
 
-export { uploadToCloudinary, deleteFromCloudinary };
+export { uploadToCloudinary,  deleteFromCloudinary };

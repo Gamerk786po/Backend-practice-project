@@ -1,7 +1,10 @@
 import { ApiError } from "../utils/ApiError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import User from "../models/user.model.js";
-import { uploadToCloudinary, deleteFromCloudinary } from "../utils/uploadToCloudinary.js";
+import {
+  uploadToCloudinary,
+  deleteFromCloudinary,
+} from "../utils/uploadToCloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken";
 
@@ -72,7 +75,7 @@ const registerUser = asyncHandler(async (req, res) => {
   // Response
   return res
     .status(201)
-    .json(new ApiResponse(200, createdUser, "Successfully registered user"));
+    .json(new ApiResponse(201, createdUser, "Successfully registered user"));
 });
 
 const loginUser = asyncHandler(async (req, res) => {
@@ -261,20 +264,47 @@ const updatePassword = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, {}, "Password succesfully updated"));
 });
 
-const updateAvatar = asyncHandler(async(req, res) => {
+const updateAvatar = asyncHandler(async (req, res) => {
+  const avatarLocalPath = req.file?.path;
 
-})
+  // Checking if there is avatarLocalPath
+  if (!avatarLocalPath) {
+    throw new ApiError(400, "Avatar file is required");
+  }
+
+  const user = await User.findById(req.user._id);
+
+  // checking if there is user
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+  // Deleting from cloudinary
+  await deleteFromCloudinary(user.avatarId);
+
+  // uploading new Avatar to cloudinary
+  const newAvatar = await uploadToCloudinary(avatarLocalPath);
+
+  user.avatar = newAvatar.url;
+  user.avatarId = newAvatar.public_id;
+  await user.save({ validateBeforeSave: false });
+
+  const updatedAvatarUser = await User.findById(req.user._id).select(
+    "-password -refreshToken"
+  );
+
+  res
+    .status(200)
+    .json(
+      new ApiResponse(200, updatedAvatarUser, "Avatar changed successfully")
+    );
+});
 
 const getUser = asyncHandler(async (req, res) => {
   const { password, refreshToken, ...user } = req.user.toObject();
   return res
     .status(200)
     .json(
-      new ApiResponse(
-        200,
-        user,
-        "Current loggedin User successfully fetched"
-      )
+      new ApiResponse(200, user, "Current loggedin User successfully fetched")
     );
 });
 
