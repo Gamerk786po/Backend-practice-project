@@ -308,7 +308,7 @@ const getUser = asyncHandler(async (req, res) => {
     );
 });
 
-const getChannelInfo = asyncHandler(async () => {
+const getChannelInfo = asyncHandler(async (req, res) => {
   const { userName } = req.params;
 
   if (!userName?.trim()) {
