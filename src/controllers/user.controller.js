@@ -308,6 +308,76 @@ const getUser = asyncHandler(async (req, res) => {
     );
 });
 
+const getChannelInfo = asyncHandler(async () => {
+  const { userName } = req.params;
+
+  if (!userName?.trim()) {
+    new ApiError(400, "UserName is required");
+  }
+
+  // Getting Channel info using aggregation pipelines
+  const channelInfo = User.aggregate(
+    {
+      // Getting all documents with this userName in it
+      $match: {
+        userName: userName,
+      },
+    },
+    // Getting documents where this userName is a channel
+    {
+      $lookup: {
+        from: "subscriptions",
+        localField: "_id",
+        foreignField: "channel",
+        as: "subscribers",
+      },
+    },
+    // Getting documents where this userName is a subscriber
+    {
+      $lookup: {
+        from: "subscriptions",
+        localField: "_id",
+        foreignField: "subscriber",
+        as: "subscribedTo",
+      },
+    },
+    // Summing these Lookups
+    {
+      $addFields: {
+        subscribersCount: {
+          $size: "$subscribers",
+        },
+        subscribedToCount: {
+          $size: "$subscribedTo",
+        },
+        isSubscribed: {
+          $cond: {
+            if: { $in: [req.user?._id, "$subscribers.subscriber"] },
+            then: true,
+            else: false,
+          },
+        },
+      },
+    },
+    // Projecting desired data
+    {
+      $project: {
+        userName: 1,
+        avatar: 1,
+        subscribersCount: 1,
+        subscribedToCount: 1,
+        isSubscribed: 1,
+      },
+    }
+  );
+  // Giving a response
+  res
+    .status(200)
+    .json(
+      new ApiResponse(200, channelInfo, "Channel Info fetched Successfully")
+    );
+});
+
 export {
   registerUser,
   loginUser,
