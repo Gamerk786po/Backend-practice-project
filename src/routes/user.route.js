@@ -1,5 +1,6 @@
 import { Router } from "express";
 import {
+  getChannelInfo,
   getUser,
   loginUser,
   logoutUser,
@@ -20,6 +21,7 @@ router.route("/register").post(upload.single("avatar"), registerUser);
 router.route("/login").post(loginUser);
 
 router.route("/refresh").post(regenerateRefreshAndAccessTokens);
+
 // Secure routes
 router.route("/logout").post(jwtVerify, logoutUser);
 
@@ -30,5 +32,7 @@ router.route("/password").patch(jwtVerify, updatePassword);
 router.route("/getUser").get(jwtVerify, getUser);
 
 router.route("/avatar").patch(jwtVerify, upload.single("avatar"), updateAvatar);
+
+router.route("/getChannelInfo").get(jwtVerify, getChannelInfo);
 
 export default router;

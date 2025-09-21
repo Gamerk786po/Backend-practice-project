@@ -370,6 +370,11 @@ const getChannelInfo = asyncHandler(async (req, res) => {
       },
     }
   );
+
+  // Checking if the lenght of pipeline
+  if(!channelInfo?.length){
+    throw new ApiError(404, "channel does not exists")
+  }
   // Giving a response
   res
     .status(200)
