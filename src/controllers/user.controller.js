@@ -387,4 +387,5 @@ export {
   updatePassword,
   updateAvatar,
   getUser,
+  getChannelInfo
 };
