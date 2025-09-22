@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { ApiError } from "../utils/ApiError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import User from "../models/user.model.js";
@@ -372,8 +373,8 @@ const getChannelInfo = asyncHandler(async (req, res) => {
   );
 
   // Checking if the lenght of pipeline
-  if(!channelInfo?.length){
-    throw new ApiError(404, "channel does not exists")
+  if (!channelInfo?.length) {
+    throw new ApiError(404, "channel does not exists");
   }
   // Giving a response
   res
@@ -381,6 +382,55 @@ const getChannelInfo = asyncHandler(async (req, res) => {
     .json(
       new ApiResponse(200, channelInfo[0], "Channel Info fetched Successfully")
     );
+});
+
+const getWatchHistory = asyncHandler(async (req, res) => {
+  const userWatchHistory =
+    User.aggregate([
+      // Matching to get all documents with this id
+      {
+        match: { _id: new mongoose.Types.ObjectId(String(req.user._id)) },
+      },
+      // Lookup to getWatchHistory from videos
+      {
+        $lookup: {
+          from: "videos",
+          localField: "watchHistory",
+          foreignField: "_id",
+          as: "WatchHistroy",
+          // new pipeline to get owner of video
+          pipeline: [
+            {
+              $lookup: {
+                from: "users",
+                localField: "owner",
+                foreignField: "_id",
+                as: "owner",
+                pipeline: [
+                  {
+                    $project: {
+                      userName: 1,
+                      avatar: 1,
+                    },
+                  },
+                ],
+              },
+            },
+          ],
+        },
+      },
+      {
+        $addFields: {
+          owner: {
+            $first: "$owner",
+          },
+        },
+      }
+    ]);
+  // Giving a response
+  res
+    .status(200)
+    .json(new ApiResponse(200, userWatchHistory, "userWatchedHistory fetched"));
 });
 
 export {
@@ -392,5 +442,6 @@ export {
   updatePassword,
   updateAvatar,
   getUser,
-  getChannelInfo
+  getChannelInfo,
+  getWatchHistory
 };
