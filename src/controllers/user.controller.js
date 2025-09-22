@@ -379,7 +379,7 @@ const getChannelInfo = asyncHandler(async (req, res) => {
   res
     .status(200)
     .json(
-      new ApiResponse(200, channelInfo, "Channel Info fetched Successfully")
+      new ApiResponse(200, channelInfo[0], "Channel Info fetched Successfully")
     );
 });
 
